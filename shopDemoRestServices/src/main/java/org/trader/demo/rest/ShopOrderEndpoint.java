@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 
 import org.trader.demo.model.client.ShopHTManager;
+import org.trader.demo.model.jpa.Allocation;
 import org.trader.demo.model.jpa.ShopOrder;
 
 /**
@@ -76,6 +77,25 @@ public class ShopOrderEndpoint {
 		}
 		return Response.ok(entity).build();
 	}
+	
+	@GET
+	@Path("/status/{status}")
+	@Produces("application/json")
+	public List<ShopOrder> findByStatus(@PathParam("status") String status ) {
+		
+		System.out.println ("ShopOrder:findByStatus:" + status );
+		TypedQuery<ShopOrder> findByIdQuery = em
+				.createQuery(
+						"SELECT DISTINCT s FROM ShopOrder s WHERE s.Status = :status ORDER BY s.id",
+						ShopOrder.class);
+		findByIdQuery.setParameter("status", status);
+
+		final List<ShopOrder> results = findByIdQuery.getResultList();
+
+		return results;
+	}
+
+	
 
 	@GET
 	@Produces("application/json")
@@ -126,7 +146,7 @@ public class ShopOrderEndpoint {
 
 	String url = "localhost:8080";
 	String deploymentId       = "DT_BOERSE:ShopDemo:1.0";
-	String processName        = "XXX";
+	String processName        = "ShopDemo.ExecuteLocalOrderV3";
 	
 	
 	@GET
@@ -136,12 +156,6 @@ public class ShopOrderEndpoint {
 		
 		
 		System.out.println ("displayTasks:BusinessKey:" + id );
-		
-		String userId = "bpmsAdmin";
-		String password = "_Admin1!";
-
-		String url = "localhost:8080";
-		String deploymentId       = "DT_BOERSE:ShopDemo:1.0";
 		
 		final ShopHTManager sHTM = new ShopHTManager(userId, password, url, deploymentId, null );
 				
@@ -165,7 +179,6 @@ public class ShopOrderEndpoint {
 		
 		if (releaseds.equalsIgnoreCase("T")) {  released = Boolean.TRUE; }
 		
-		
 		ShopHTManager sHTM = new ShopHTManager(userId, password, url, deploymentId, null );
 		
 		sHTM.releaseOrder(  id, released  );
@@ -174,19 +187,48 @@ public class ShopOrderEndpoint {
 	}
 	
 	@GET
-	@Path("/restart/{id:[0-9][0-9]*}")
+	@Path("/restart/{status}")
 	@Produces("application/json")
-	public Response restartOrder( @PathParam("id") Long id) {
+	public Response restartOrder( @PathParam("status") String status ) {
 
+		List<ShopOrder> loo = findByStatus(status);
 		
-		Map Variables = new HashMap();
-		
-		
-		
+		TypedQuery<Allocation> findAllocationByIdQuery = em
+				.createQuery(
+						"SELECT DISTINCT a FROM Allocation a WHERE a.orderid = :orderId ORDER BY a.id",
+						Allocation.class);
+
+		for ( ShopOrder so : loo ) {
+			
+			System.out.println ("restartOrder:Starting Order" + so );
+			
+			Map variables = new HashMap();
+
+			Allocation allocation;
+
+			findAllocationByIdQuery.setParameter("orderId", so.getId());
+
+			try {
+				allocation = findAllocationByIdQuery.getSingleResult();
+				System.out.println ("restartOrder:found Allocation" + allocation );
+			} catch (NoResultException nre) {
+				System.out.println ("restartOrder:no Allocation" );
+				allocation = null;
+			}
+			
+			variables.put( "order4p",    so );
+			variables.put( "allocation", allocation);
+			
+			processName = "ShopDemo.ExecuteLocalOrderV3";
+			
+			final ShopHTManager sHTM = new ShopHTManager(userId, password, url, deploymentId, this.processName );
+			
+			sHTM.startProcessAndHandleTaskViaRestRemoteJavaAPI( variables, false );
+			
+		}
+			
 		return Response.ok().build();
 	}
 	
-	
-	
-	
+		
 }

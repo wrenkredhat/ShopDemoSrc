@@ -67,7 +67,7 @@ public class OrderService {
 			if ( items4ThisOrder > 0  ) {
 
 				ShopOrder po = new ShopOrder();
-				
+							
 				po.setMarketIdSrc(localOrder.getMarketIdSrc());
 				po.setMarketIdTgt(mp.getId().toString());
 				po.setProductID(localOrder.getProductID());
@@ -80,7 +80,11 @@ public class OrderService {
 				
 				itemsToOrder -= po.getQty();
 				
+				System.out.println ("partialOrder:" + po );
+				
 			}
+			
+			// System.out.println ("partialOrders:" + partialOrders );
 			
 		}
 		
@@ -140,6 +144,10 @@ public class OrderService {
 		nol.setPrice(lp.getPrice()*itemsLocal);
 		nol.setFrgPrice((long)0);
 		nol.setRate(1);
+		nol.setUser(lo.getUser());
+		nol.setUserEmail(lo.getUserEmail());
+		nol.setBusinessKey(lo.getBusinessKey());
+		
 		
 		List folist = os.getCompoundOrders( lo, nol.getQty()  );
 		

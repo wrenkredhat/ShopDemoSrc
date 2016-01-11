@@ -39,7 +39,7 @@ public class ProcessStarter {
 		PID = xxx.startProcessAndHandleTaskViaRestRemoteJavaAPI(processVariables, true);
 	}
 	
-	public void startProcessREST(String userId, String password, String url, String deploymentId, String ProcessName, Map processVariables ) {
+	public void startProcessRESTx (String userId, String password, String url, String deploymentId, String ProcessName, Map processVariables ) {
 		
 		url = url.replace(":8180", ":8080" );
 		

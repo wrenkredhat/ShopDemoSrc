@@ -693,7 +693,7 @@ public class WIRestCallerWIH {
 		newOrder.setMarketIdSrc( "1" );
 		newOrder.setMarketIdTgt( "1" );
 		newOrder.setUser("US-U1");
-		newOrder.setUserEmail( WIRestCallerWIH.getIP() );
+		newOrder.setUserEmail( WIRestCallerWIH.getIP() + ":8180" );
 		newOrder.setQty(3);
 		newOrder.setProductID( "1" );
 		

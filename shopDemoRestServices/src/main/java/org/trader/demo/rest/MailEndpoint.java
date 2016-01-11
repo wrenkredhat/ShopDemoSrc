@@ -30,7 +30,8 @@ import org.trader.demo.model.jpa.Product;
 public class MailEndpoint {
 
 	@POST
-	@Consumes("text/plain")
+	// @Consumes("text/plain")
+	@Consumes("application/json")
 	public Response receive(String  mail ) {
 		
 		System.out.println ( "---------------------------------------------------------" );
