@@ -39,7 +39,7 @@ public class ShopOrderEndpoint {
 	@POST
 	@Consumes("application/json")
 	public Response create(ShopOrder entity) {
-		
+		System.out.println ("shoporder:POST:" + entity );
 		em.persist(entity);
 		return Response.created(
 				UriBuilder.fromResource(ShopOrderEndpoint.class)
@@ -118,6 +118,9 @@ public class ShopOrderEndpoint {
 	@Path("/{id:[0-9][0-9]*}")
 	@Consumes("application/json")
 	public Response update(@PathParam("id") Long id, ShopOrder entity) {
+		
+		System.out.println ("shoporder:PUT:" + id + ':' + entity );
+		
 		if (entity == null) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
@@ -190,6 +193,8 @@ public class ShopOrderEndpoint {
 	@Path("/restart/{status}")
 	@Produces("application/json")
 	public Response restartOrder( @PathParam("status") String status ) {
+		
+		System.out.println ("restartOrder:status:" + status );
 
 		List<ShopOrder> loo = findByStatus(status);
 		
@@ -210,6 +215,7 @@ public class ShopOrderEndpoint {
 
 			try {
 				allocation = findAllocationByIdQuery.getSingleResult();
+				variables.put( "allocation", allocation);
 				System.out.println ("restartOrder:found Allocation" + allocation );
 			} catch (NoResultException nre) {
 				System.out.println ("restartOrder:no Allocation" );
@@ -217,8 +223,7 @@ public class ShopOrderEndpoint {
 			}
 			
 			variables.put( "order4p",    so );
-			variables.put( "allocation", allocation);
-			
+					
 			processName = "ShopDemo.ExecuteLocalOrderV3";
 			
 			final ShopHTManager sHTM = new ShopHTManager(userId, password, url, deploymentId, this.processName );

@@ -166,13 +166,11 @@ public class ShopHTManager {
 		
 		   sleep(2);
 		   
-		   System.out.println("sleep" ); 
-		
 	       TaskService taskService = engine.getTaskService();
 	       
-	       System.out.println("taskService" ); 
-			
 	        boolean found = false;
+	        
+	        int toCnt = 120;
 	        
 	        for( ;!found; ) {
 	        	
@@ -182,30 +180,26 @@ public class ShopHTManager {
 	        	
 		        for (TaskSummary tasksum : tasks) {
 		        	
-		        	System.out.println("Found Task: " + tasksum );
+		        	// System.out.println("Found Task: " + tasksum );
 		        	
 		        	long tskID = tasksum.getId();
 		        	
-		        	System.out.println("Found tskID: " + tskID );
+		        	// System.out.println("Found tskID: " + tskID );
 		        	
 		        	if ( tskID != -1 ) {
 		        	
 		        		Task task = taskService.getTaskById(tskID);
 		        		
-		        		
 		        		Map tskContent = taskService.getTaskContent(tskID);
-		        		
 		        		
 		           		String processId = task.getTaskData().getProcessId();
 		        		
-		        		System.out.println ("ProcessId:" + processId );
-		        		
-		        		sleep(3);
+		        		// System.out.println ("ProcessId:" + processId );
 		        		
 		        		if ( processId.equals ("ShopDemo.OrderProcess") ||  processId.equals ("ShopDemo.CaptureOrder") ) {
 		        			                
 			           		for ( Object key :  tskContent.keySet() ) {
-			        			System.out.println ( "TskCntKey:"  + key +':'+ tskContent.get(key) );
+			        			// System.out.println ( "TskCntKey:"  + key +':'+ tskContent.get(key) );
 			        			
 			        			if ( key.equals("checkOrder") ) {
 			        				
@@ -213,7 +207,8 @@ public class ShopHTManager {
 			        				
 			        				if ( so.getBusinessKey() == bKey ) {
 			        					System.out.println ( "/********             Found Order           *********/" );
-			        				    System.out.println ( so.toString() );	
+			        				    System.out.println ( so.toString() );
+			        				    System.out.println ( "TskCntKey:"  + "generatedOrders" +':'+ tskContent.get("generatedOrders") );
 			        				    System.out.println ( "/****************************************************/" );
 			        				    found = true;
 			        				    
@@ -226,6 +221,8 @@ public class ShopHTManager {
 		         }
 		        
 		        sleep(1);
+		        
+		        if ( toCnt-- == 0 ) { found = true;}
 	        }
 	        
 	        return null;

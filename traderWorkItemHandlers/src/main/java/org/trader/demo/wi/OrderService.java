@@ -44,13 +44,11 @@ public class OrderService {
 	}
 	
 
-	public List<ShopOrder> getCompoundOrders( ShopOrder localOrder, int localQty ) {
+	public List<ShopOrder> getCompoundOrders( ShopOrder localOrder, int localQty, List<ShopOrder> partialOrders ) {
 		
-		List<ShopOrder> partialOrders = new ArrayList<ShopOrder>();
-			
 		List<Marketplace> marketplaces = wirc.getAll( "localhost:8180", "Marketplace" );
 	
-		System.out.println ( "marketlaces" + marketplaces );
+		System.out.println ( "getCompoundOrders:marketlaces" + marketplaces );
 		
 		int itemsToOrder = localOrder.getQty()-localQty;
 		
@@ -82,11 +80,15 @@ public class OrderService {
 				
 				System.out.println ("partialOrder:" + po );
 				
-			}
-			
-			// System.out.println ("partialOrders:" + partialOrders );
-			
+			}			
 		}
+		
+		if ( itemsToOrder > 0 ) {
+			System.out.println ("getCompoundOrders:Not enough items:" + itemsToOrder  );
+			return null;
+		}
+		
+		priceOrders(partialOrders);
 		
 		return partialOrders;
 	}
@@ -135,6 +137,10 @@ public class OrderService {
 		
 		int itemsLocal = ( lo.getQty() > ls.getQty() )? ls.getQty() : lo.getQty();
 		
+		
+		List<ShopOrder> folist = new ArrayList<ShopOrder>();
+		
+	
 		ShopOrder nol = new ShopOrder();
 		
 		nol.setProductID(lo.getProductID());
@@ -148,12 +154,9 @@ public class OrderService {
 		nol.setUserEmail(lo.getUserEmail());
 		nol.setBusinessKey(lo.getBusinessKey());
 		
-		
-		List folist = os.getCompoundOrders( lo, nol.getQty()  );
-		
-		os.priceOrders(folist);
-		
 		folist.add(nol);
+		
+		folist = os.getCompoundOrders( lo, nol.getQty(), folist  );
 		
 		return folist;
 	}
@@ -217,7 +220,7 @@ public class OrderService {
 		newOrder.setProductID( "1" );
 		
 
-		List<ShopOrder> orders = os.getCompoundOrders(newOrder, 0);
+		List<ShopOrder> orders = os.getCompoundOrders(newOrder, 0, null);
 	    os.priceOrders(orders);
 		
 		

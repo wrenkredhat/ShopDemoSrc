@@ -113,9 +113,10 @@ public class ShopServiceAccessor implements WorkItemHandler {
 		
 		Long id = (Long)WIRC.postToService("localhost:8180", "stockservice", "alloc", alloc );
 		
-		alloc=(Allocation)WIRC.getByID("localhost:8180", "Allocation", id);
-		
+		System.out.println ("allocateStock:ID:" +  id );
+
 		if ( id != -1 ) {
+			alloc=(Allocation)WIRC.getByID("localhost:8180", "Allocation", id);
 			return alloc;
 		} else {
 			return null;
@@ -145,7 +146,7 @@ public class ShopServiceAccessor implements WorkItemHandler {
 
 		ShopOrder  order     = (ShopOrder)  workItem.getParameter("Item");
 		
-		order.setStatus("NEW");
+		if (order.getStatus() == null)    order.setStatus("NEW");
 		
 		Long ID= WIRC.putObject("localhost:8180", order, null );
 		

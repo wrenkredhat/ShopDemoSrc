@@ -700,6 +700,7 @@ public class WIRestCallerWIH {
 		processVariables.put("order", newOrder);
 		// Equivalent of
 		// http://localhost:8180/jbpm-console/rest/runtime/com.redhat.bpms.examples:mortgage:1/process/com.redhat.bpms.examples.mortgage.MortgageApplication/start?map_name=Babak&map_address=12300%20Wilshire&map_ssn=333224449i&map_income=200000i&map_price=1000000i&map_downPayment=200000i&map_amortization=30i
+		// "http://localhost:8180/restServices/shopdemo/shoporders/status/FAIL:QTY"
 		return processVariables;
 	}
 	
