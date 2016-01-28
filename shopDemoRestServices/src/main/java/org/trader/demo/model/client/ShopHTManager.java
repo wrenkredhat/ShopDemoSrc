@@ -21,6 +21,7 @@ import org.kie.internal.task.api.TaskInstanceService;
 import org.kie.services.client.api.RemoteRuntimeEngineFactory;
 import org.kie.services.client.api.command.RemoteRuntimeEngine;
 import org.trader.demo.model.jpa.ShopOrder;
+import org.trader.demo.rest.WIRestCallerRST;
  
 
 public class ShopHTManager {
@@ -44,7 +45,9 @@ public class ShopHTManager {
 		this.deploymentId = deploymentId;
 		this.processName = processName;
 		
-        url = url.replace(":8180", ":8080" );
+        url = url.replace(":8080", ":8180" );
+        
+        url = WIRestCallerRST.getHostPort(url);
 		
 		url = "http://"+url+"/business-central";
 		
@@ -59,7 +62,7 @@ public class ShopHTManager {
         // Setup the factory class with the necessarry information to communicate with the REST services
         engine = RemoteRuntimeEngineFactory.newRestBuilder()
         		.addUrl(urlu)
-        		.addTimeout(5)
+        		.addTimeout(30)
         		.addDeploymentId(deploymentId)
         		.addUserName(userId)
         		.addPassword(password)

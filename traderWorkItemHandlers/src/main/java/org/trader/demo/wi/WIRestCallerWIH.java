@@ -107,19 +107,33 @@ public class WIRestCallerWIH {
         
         return null;
     }
-    
+        
     protected String getHostPort(String HostPort ) {
+    
+    	// trying portOffset=java.util.Properties.getProperty("");
     	
-    	// tring portOffset=java.util.Properties.getProperty("");
+    	String portOffetS = System.getProperty("jboss.socket.binding.port-offset");
+    	
+    	int portOffet =  Integer.parseInt( portOffetS  );
     	
     	String hp[] = HostPort.split(":");
     	
+    	int port = Integer.parseInt(hp[1]);
     	
+    	System.out.println ("getHostPort:" + port );
     	
-    	return hp[0];
+    	if ( port == 8180 ) {
+    		port = 8080 + portOffet;
+    	}
+    	
+    	System.out.println ( port );
+    	
+    	return hp[0]+':'+port;
     }
 
 	protected URL getUrl(String HostPort, String msClass, String service ) {
+		
+		HostPort = getHostPort(HostPort);
 
 		String urlString = "http://" + HostPort + "/restServices/shopdemo/" + msClass.toLowerCase();
 
@@ -496,7 +510,7 @@ public class WIRestCallerWIH {
 		String method = "POST";
 		
 		
-		String urlString = "http://localhost:8180/restServices/shopdemo/processstarter";
+		String urlString = "http://localhost:8280/restServices/shopdemo/processstarter";
 
 		System.out.println ( "EAP:startProcess:XSTREAM: URL:" + urlString );
 		
@@ -693,7 +707,7 @@ public class WIRestCallerWIH {
 		newOrder.setMarketIdSrc( "1" );
 		newOrder.setMarketIdTgt( "1" );
 		newOrder.setUser("US-U1");
-		newOrder.setUserEmail( WIRestCallerWIH.getIP() + ":8180" );
+		newOrder.setUserEmail( WIRestCallerWIH.getIP() + ":8280" );
 		newOrder.setQty(3);
 		newOrder.setProductID( "1" );
 		

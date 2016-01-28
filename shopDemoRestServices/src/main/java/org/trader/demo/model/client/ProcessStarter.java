@@ -35,8 +35,8 @@ public class ProcessStarter {
 	
 	public void startProcess(String userId, String password, String url, String deploymentId, String ProcessName, Map processVariables ) {
 		System.out.println ( "EAP:XXX:startProcess:url"  + url );
-		ShopHTManager xxx = new ShopHTManager ( userId, password,  url, deploymentId, ProcessName );
-		PID = xxx.startProcessAndHandleTaskViaRestRemoteJavaAPI(processVariables, true);
+		ShopHTManager shtm = new ShopHTManager ( userId, password,  url, deploymentId, ProcessName );
+		PID = shtm.startProcessAndHandleTaskViaRestRemoteJavaAPI(processVariables, true);
 	}
 	
 	public void startProcessRESTx (String userId, String password, String url, String deploymentId, String ProcessName, Map processVariables ) {

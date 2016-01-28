@@ -77,15 +77,15 @@ public class FXRateEndpoint {
 	//@Path("/convert/{base :[A-Z][A-Z]*}/{tgt:[A-Z][A-Z]*}")
 	@Path("/convert/{base:[A-Z][A-Z][A-Z]}/{tgt:[A-Z][A-Z][A-Z]}")
 	@Produces("application/json")
-	public Response getRate( @PathParam("base") String base
-							//,@PathParam("tgt")  String tgt
+	public Response getRate(  @PathParam("base") String base
+							 ,@PathParam("tgt")  String tgt
 						   ) {
 		TypedQuery<FXRate> findByIdQuery = em
 				.createQuery(
 						"SELECT DISTINCT f FROM FXRate f WHERE f.BaseCCY = :base and f.TgtCCY = :tgt ORDER BY f.id",
 						FXRate.class);
 		findByIdQuery.setParameter("base", base);
-		findByIdQuery.setParameter("tgt",  "USD");
+		findByIdQuery.setParameter("tgt",  tgt );
 		
 		FXRate entity;
 		try {

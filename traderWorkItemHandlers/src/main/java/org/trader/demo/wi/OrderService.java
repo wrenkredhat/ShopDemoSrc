@@ -16,26 +16,28 @@ public class OrderService {
 	Long calculatePriceLocal( ShopOrder order )
 	{
 		order.setShippingCosts(0);
-		order.setMarketIdTgt(order.getMarketIdSrc());
+		/* order.setMarketIdTgt(order.getMarketIdSrc());*/
 		order.setRate(1.0);
+		order.setShippingCosts(0);
+		order.setFrgPrice((long)0);
 		
 		Product prd = (Product)wirc.getByID("localhost:8180", "Product", new Long(order.getProductID()) );
 		Long itemPrice = prd.getPrice();
 		
 		System.out.println  ( "localhostItemPrice: " + itemPrice );
+
+		order.setPrice(order.getQty()*itemPrice);
 			
 		return new Long( itemPrice ); 
 	}
 	
-	Long calculatePriceRemote( ShopOrder order, Stock stock )
+	Long calculatePriceRemote( ShopOrder order, Stock stock, double rate )
 	{
 		long result = 0;
 	
 		order.setShippingCosts(0);
-		order.setMarketIdTgt(order.getMarketIdSrc());
-		order.setRate(1.0);
+		/**** order.setMarketIdTgt(order.getMarketIdSrc()); */
 		
-		Long itemPrice = null;
 		System.out.println  ( "localhostItemPrice: " + 0 );
 		
 		order.setFrgPrice((long) (order.getQty() * 1) );
@@ -46,6 +48,8 @@ public class OrderService {
 
 	public List<ShopOrder> getCompoundOrders( ShopOrder localOrder, int localQty, List<ShopOrder> partialOrders ) {
 		
+		System.out.println ( "getCompoundOrders");
+		
 		List<Marketplace> marketplaces = wirc.getAll( "localhost:8180", "Marketplace" );
 	
 		System.out.println ( "getCompoundOrders:marketlaces" + marketplaces );
@@ -53,6 +57,8 @@ public class OrderService {
 		int itemsToOrder = localOrder.getQty()-localQty;
 		
 		for ( Marketplace mp : marketplaces ) {
+			
+			if ( localOrder.getMarketIdTgt().equals((mp.getId().toString())) ) continue;
 			
 			 Stock foreigenStock = (Stock)wirc.getByPath(mp.getURL(), "Stock", "prdid", localOrder.getProductID());
 
@@ -97,30 +103,42 @@ public class OrderService {
 		
 		Marketplace lmp=null;
 		
-		for ( ShopOrder o : allOrders ) {
+		System.out.println ( "priceOrders:allOrders" + allOrders );
+		
+		for ( ShopOrder odr : allOrders ) {
+				
+			if ( lmp == null ) lmp=(Marketplace)wirc.getByID("localhost:8180", "Marketplace", new Long( odr.getMarketIdSrc()));
 			
-			if ( lmp == null ) lmp=(Marketplace)wirc.getByID("localhost:8180", "Marketplace", new Long( o.getMarketIdSrc()));
+			Marketplace fmp = (Marketplace)wirc.getByID( "localhost:8180", "Marketplace", new Long( odr.getMarketIdTgt()));
 			
-			Marketplace fmp = (Marketplace)wirc.getByID("localhost:8180", "Marketplace", new Long( o.getMarketIdTgt()));
+			if ( odr.getMarketIdSrc().equals(odr.getMarketIdTgt()) ) {
+					calculatePriceLocal(odr);
+					odr.setTotalPrice(odr.getPrice().intValue());
+			} else {
+				
+				calculatePriceLocal(odr);
 			
-			FXRate rt = ( FXRate )wirc.getByPath(
-					"localhost:8180", FXRate.class.getSimpleName(), "convert/"+lmp.getCCY(), fmp.getCCY() 
-			);
+				FXRate rt = ( FXRate )wirc.getByPath(
+						"localhost:8180", FXRate.class.getSimpleName(), "convert/"+lmp.getCCY(), fmp.getCCY() 
+				);
 			
-			double rate = rt.getRate();
+				Product fprd = (Product)wirc.getByID(fmp.getURL(), "Product", new Long(odr.getProductID()) );
+				
+				System.out.println ( "fprd:" + fprd  );
+				System.out.println ( "rate:" + rt  );
+
+				double rate = rt.getRate();
 			
-			o.setRate(rate);
-			o.setFrgPrice( new Long((long)(o.getQty()*rate)));
-			o.setPrice( new Long(calculatePriceLocal(o)));
-			o.setShippingCosts((int)fmp.getShippingCosts());
-			
-			if ( !o.getMarketIdSrc().equals(o.getMarketIdTgt()) ) {
-				o.setTotalPrice((int)(o.getFrgPrice()+o.getPrice()+o.getShippingCosts()) );
+				odr.setRate(rate);
+				
+				odr.setFrgPrice( new Long((long)(odr.getQty()*rate*fprd.getPrice())));
+				odr.setShippingCosts((int)fmp.getShippingCosts());
+
+				odr.setTotalPrice(
+					(int)(odr.getFrgPrice()+odr.getShippingCosts())
+				);
 			}
-			else {
-				o.setTotalPrice((o.getPrice().intValue()));
-			}
-			
+						
 		}
 		
 		return allOrders;
@@ -135,28 +153,40 @@ public class OrderService {
 		Stock ls   = (Stock)   wirc.getByPath("localhost:8180", "Stock",  "prdid", lo.getProductID());
 		Product lp = (Product) wirc.getByID(  "localhost:8180", "Product", new Long(lo.getProductID()));
 		
-		int itemsLocal = ( lo.getQty() > ls.getQty() )? ls.getQty() : lo.getQty();
-		
-		
 		List<ShopOrder> folist = new ArrayList<ShopOrder>();
 		
-	
-		ShopOrder nol = new ShopOrder();
+		System.out.println ( "assembleOffer:folist:" + folist );
 		
-		nol.setProductID(lo.getProductID());
-		nol.setMarketIdSrc(lo.getMarketIdSrc());
-		nol.setMarketIdTgt(lo.getMarketIdSrc()); // eq.
-		nol.setQty(itemsLocal);
-		nol.setPrice(lp.getPrice()*itemsLocal);
-		nol.setFrgPrice((long)0);
-		nol.setRate(1);
-		nol.setUser(lo.getUser());
-		nol.setUserEmail(lo.getUserEmail());
-		nol.setBusinessKey(lo.getBusinessKey());
+		int itemsLocal = 0;
 		
-		folist.add(nol);
+		if ( ls != null && ls.getQty() > 0 ) {
+			
+			itemsLocal = ( lo.getQty() > ls.getQty() )? ls.getQty() : lo.getQty();
+
+			ShopOrder nol = new ShopOrder();
+			
+			nol.setProductID(lo.getProductID());
+			nol.setMarketIdSrc(lo.getMarketIdSrc());
+			nol.setMarketIdTgt(lo.getMarketIdSrc()); // eq.
+			nol.setQty(itemsLocal);
+			nol.setPrice(lp.getPrice()*itemsLocal);
+			nol.setFrgPrice((long)0);
+			nol.setRate(1);
+			nol.setUser(lo.getUser());
+			nol.setUserEmail(lo.getUserEmail());
+			nol.setBusinessKey(lo.getBusinessKey());
+			
+			System.out.println ( "LocalpartialOrder:" + nol );
+			
+			folist.add(nol);
+			
+			System.out.println ( "assembleOffer:folist:nol:" + folist );
+		}
 		
-		folist = os.getCompoundOrders( lo, nol.getQty(), folist  );
+		System.out.println ( "assembleOffer:folist:getCompoundOrders:" + folist );
+		folist = os.getCompoundOrders( lo, itemsLocal, folist  );
+		
+		System.out.println ( "assembleOffer:folist:getCompoundOrders:" + folist );
 		
 		return folist;
 	}

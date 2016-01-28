@@ -101,8 +101,33 @@ public class WIRestCallerRST {
         
         return null;
     }
+    
+    public static String getHostPort(String HostPort ) {
+        
+    	// trying portOffset=java.util.Properties.getProperty("");
+    	
+    	String portOffetS = System.getProperty("jboss.socket.binding.port-offset");
+    	
+    	int portOffet =  Integer.parseInt( portOffetS  );
+    	
+    	String hp[] = HostPort.split(":");
+    	
+    	int port = Integer.parseInt(hp[1]);
+    	
+    	System.out.println ("getHostPort:" + port );
+    	
+    	if ( port == 8180 ) {
+    		port = 8080 + portOffet;
+    	}
+    	
+    	System.out.println ( port );
+    	
+    	return hp[0]+':'+port;
+    }
 
-	protected URL getUrl(String HostPort, String msClass, String service) {
+	protected URL getUrl(String HostPort, String msClass, String service ) {
+		
+		HostPort = getHostPort(HostPort);
 
 		String urlString = "http://" + HostPort + "/restServices/shopdemo/" + msClass.toLowerCase();
 
